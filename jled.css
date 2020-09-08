@@ -1,0 +1,157 @@
+@font-face {
+    font-family: "DSEG7Modern";
+    src: url("DSEG7Modern-Bold.woff2") format("woff2"),
+        url("DSEG7Modern-Bold.woff") format("woff");
+}
+
+@import url("https://fonts.googleapis.com/css?family=Source+Code+Pro&display=swap");
+
+* {
+    font-family: "Source Code Pro", Monospace;
+}
+
+body {
+    background: black;
+    color: white;
+}
+
+b {
+    color: red;
+}
+
+.infobox {
+    font-size: 1.5em;
+}
+
+.form {
+    font-size: 1em;
+}
+
+select {
+    font-size: 1em;
+}
+
+input[type="text"] {
+    padding: 1px;
+    font-size: 1.25em;
+    xbackground-color: lightgray;
+    border: none;
+    border-bottom: 2px solid black;
+}
+
+input[type="button"] {
+    padding: 0px;
+    font-size: 1.5em;
+    background-color: lightgray;
+    color: black;
+    width: 100%;
+}
+
+.form_group {
+    clear: both;
+    float: left;
+    margin-right: 15px;
+    width: 100%;
+}
+
+.led_form {
+    display: inline-block;
+    float: left;
+}
+
+.led_form_container {
+    position: absolute;
+    background: rgba(20, 20, 20, 0.7);
+    padding: 3px;
+    font-size: 1em;
+}
+
+.leds_container {
+    clear: both;
+}
+
+.led_container {
+    float: left;
+    position: relative;
+    min-width: 160px;
+    width: 12vw;
+    border: 1px dashed darkgray;
+    margin: 5px;
+    background-color: #202020;
+}
+
+.led {
+    margin: auto;
+    display: block;
+    width: 90%;
+    transform: translate3d(0, 0, 0);
+}
+
+
+.footer {
+    clear: both;
+    height: 1em;
+    padding: 1em 0 1em 0;
+    font-size: 0.75em;
+}
+
+.brightness {
+    /*   font-family: "DSEG7Modern";*/
+    font-size: 1em;
+    width: 100%;
+    height: 1.25em;
+    display: block;
+    text-align: center;
+    xfont-weight: bold;
+    text-shadow: 1px 1px 2px black;
+}
+
+
+.timer {
+    font-family: "DSEG7Modern";
+    margin-left: 8px;
+    padding: 2px;
+    xfont-size: 5vw;
+    color: red;
+    border: 1px solid red;
+    display: inline-block;
+}
+
+.timer_running {
+    font-family: "DSEG7Modern";
+}
+
+.btn {
+    xbackground: red;
+    background: rgba(0,0,0, 0);
+    color: white;
+    border: white solid 1px; 
+    padding: 1px;
+    cursor: pointer;
+}
+
+.btn:hover {
+    background: white;
+    color: black;
+}
+
+.icon_btn {
+    font-size: 16px; /* Set a font size */
+    background: rgba(0, 0, 0, 0);
+    color: white;
+    border: none; /* Remove borders */
+    padding: 2px 2px; /* Some padding */
+    cursor: pointer; /* Mouse pointer on hover */
+}
+
+/* change background on mouse-over */
+.icon_btn:hover {
+    background: white;
+    color: black;
+}
+
+.icon_btn_select {
+    background: white;
+    color: black;
+}
+
