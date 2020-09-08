@@ -1,0 +1,9 @@
+*.pkl
+parser.out
+src/jled_glue.cpp
+src/jled_glue.js
+web/jled.wasm
+web/jled.js
+*.o
+*~
+bin/
