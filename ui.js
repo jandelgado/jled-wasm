@@ -375,7 +375,7 @@ const JLedUI = (function () {
             </fieldset>
             <input
                 type="button"
-                value="Set"
+                value="Start"
                 onclick="JLedUI.setLed(this.parentElement)"
             />
         </form>

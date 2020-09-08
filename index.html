@@ -10,7 +10,7 @@
             var Module = {
                 onRuntimeInitialized: function() {
                     console.log("WASM runtime initialized");
-                    JLedUI.init()
+                    JLedUI.init();
                 }
             }
         </script>
@@ -21,12 +21,14 @@
         <h1>JLed Web Assembly (WASM) Demo</h1>
         <p class="infobox">
         <b>What?</b> This is a demo of the <a
-            href="https://github.com/jandelgado/jled">JLed</a> Arduino C++
-        library compiled for Web Assembly (WASM) and using a hardware
-        abstraction layer that drives an element in the browser instead of a
-        real LED connected to an Arduino.</p> 
+           href="https://github.com/jandelgado/jled">JLed</a> Arduino C++
+       embedded library <a
+           href="https://github.com/jandelgado/jled-wasm">compiled for Web
+           Assembly (WASM)</a>  and using a hardware abstraction layer that
+       drives an element in the browser instead of a real LED connected to an
+       Arduino microcontroller.</p> 
         <p class="infobox">
-        <b>Why?</b> Proof of concept and to provide an interactive JLed play ground.
+        <b>Why?</b>Proof of concept and to provide an interactive JLed play ground.
         </p>
         <div style="clear:both;">
             <div style="float: left;">

@@ -19,6 +19,18 @@ b {
     color: red;
 }
 
+a:link {
+  color: yellow;
+}
+
+a:visited {
+  color: yellow;
+}
+
+a:hover {
+  color: white;
+}
+
 .infobox {
     font-size: 1.5em;
 }
