@@ -12,6 +12,10 @@ const JLedUI = (function () {
         return (opacity = 0.1 + (brightness / 255) * 0.8);
     }
 
+    function pad20(x) {
+        return String(x).padStart(2, "0");
+    }
+
     // change color and brightness of an LED SVG element
     function color_led(led, color, brightness) {
         const elem = document.getElementById(led);
@@ -55,7 +59,7 @@ const JLedUI = (function () {
         return leds[id].audioEnabled == true
     }
 
-    function toggleAudio(id, button) {
+    function onToggleAudio(id, button) {
         leds[id].audioEnabled = !isAudioEnabled(id);
         if (leds[id].audioEnabled) {
             button.classList.add("icon_btn_select");
@@ -73,6 +77,10 @@ const JLedUI = (function () {
             osc = context.createOscillator();
             osc.type = "square"; // also sine, sawtooth, triangle
             osc.frequency.value = 0; // Hz
+            let gainNode = context.createGain();
+            gainNode.gain.value = 1;        // TODO not working
+            gainNode.connect(context.destination);
+            osc.connect(gainNode);
             osc.start();
             oscillators[id] = osc;
         }
@@ -100,15 +108,34 @@ const JLedUI = (function () {
         return new JsHal(wr);
     }
 
+
+    function defaultLedConfig() {
+        const config = {
+            effect: "blink",
+            param0: 500,
+            param1: 250,
+            param2: 0,
+            delayBefore: 0,
+            delayAfter: 0,
+            forever: true,
+            repeat: 5,
+            maxBrightness: 255,
+            lowActive: false
+        };
+        return config
+    }
+
     // [x] forever checkbox was clicked -> toggle "Repeat" text field since
     // only one of both can be selected
     function onForeverCheckboxClicked(elem) {
         document.getElementById("repeat").disabled = elem.checked;
     }
 
+    // the current effect is changed in the effects form -> update the 
+    // effects parameters
     function onEffectChanged(elem) {
         const param_map = {
-            blink: [ {t:"Time on", v:500}, {t:"Time off", v: 250}, null],
+            blink: [ {t:"Time on", v: 500}, {t:"Time off", v: 250}, null],
             candle: [{t:"Speed", v: 10}, {t:"Jitter", v:20}, {t:"Period", v:5000}],
             fadeon: [{t:"Period", v: 1500}, null, null],
             fadeoff: [{t:"Period", v: 1500}, null, null],
@@ -135,31 +162,40 @@ const JLedUI = (function () {
         }
     }
 
-    function changeLed(id, container) {
-        container.appendChild(createLedForm(id));
+	// show the form to change the LED 
+    function onShowChangeLedForm(id, container) {
+        console.log("change led ", id);
+        const led = document.getElementById(ledContainerId(id));
+
+        console.log("led = ", led);
+        container.appendChild(createLedConfigForm(id, led.config));
+    }
+
+    function ledContainerId(id) {
+        return `led_container_${id}`;
     }
 
     function createLedElement(id, name, color) {
         const container = document.createElement("div");
-        const container_id = `led_container_${id}`;
+        container.id = ledContainerId(id);
 
         container.innerHTML = `
             <span>${name}</span>
             <button onclick="this.parentElement.parentElement.remove()" class="fas fa-trash-alt icon_btn" href="#"></button>
-            <button onclick="JLedUI.toggleAudio('${id}', this)" class="fas fa-volume-up icon_btn" href="#"></button>
+            <button onclick="JLedUI.onShowChangeLedForm('${id}', this.parentElement.parentElement)" class="far fa-edit icon_btn" href="#"></button>
+            <button onclick="JLedUI.onToggleAudio('${id}', this)" class="fas fa-volume-up icon_btn" href="#"></button>
             <p/>
-            <!-- <button onclick="JLedUI.changeLed('${id}', this.parentElement.parentElement)" class="far fa-edit icon_btn" href="#"></button> -->
             <object id="${id}" type="image/svg+xml" data="led.svg" class="led" onload="JLedUI.color_led('${id}', '${color}', 0);">
             </object>
-            <span class="brightness" style="background-color: ${color}">val</span>
-        `;
+            <span class="brightness" style="background-color: ${color}">val</span>`;
 
         return container;
     }
 
+     // parse a JLed configuration form and return a configuration object
     function parseLedForm(form) {
         const e = form.elements;
-        const state = {
+        const config = {
             id: e["led_id"].value,
             effect: e["effects"].value,
             param0: e["param0"].value,
@@ -172,31 +208,32 @@ const JLedUI = (function () {
             maxBrightness: e["max_brightness"].value,
             lowActive: e["low_active"].checked
         };
-        return state;
+        return config;
     }
 
-    function createJLed(id, state) {
+    // create a new JLed object with the given configuration
+    function createJLed(id, config) {
         const hal = create_hal(id);
         const led = new JLed(hal)
-            .DelayBefore(state.delayBefore)
-            .DelayAfter(state.delayAfter)
-            .MaxBrightness(state.maxBrightness);
+            .DelayBefore(config.delayBefore)
+            .DelayAfter(config.delayAfter)
+            .MaxBrightness(config.maxBrightness);
 
-        switch (state.effect) {
+        switch (config.effect) {
             case "blink":
-                led.Blink(state.param0, state.param1);
+                led.Blink(config.param0, config.param1);
                 break;
             case "breathe":
-                led.Breathe(state.param0);
+                led.Breathe(config.param0);
                 break;
             case "fadeon":
-                led.FadeOn(state.param0);
+                led.FadeOn(config.param0);
                 break;
             case "fadeoff":
-                led.FadeOff(state.param0);
+                led.FadeOff(config.param0);
                 break;
             case "candle":
-                led.Candle(state.param0, state.param1, state.param2);
+                led.Candle(config.param0, config.param1, config.param2);
                 break;
             case "on":
                 led.On();
@@ -205,22 +242,32 @@ const JLedUI = (function () {
                 led.Off();
                 break;
             case "set":
-                led.Set(state.param0);
+                led.Set(config.param0);
                 break;
             default:
-                console.error("invalid effect", state.effect);
+                console.error("invalid effect", config.effect);
                 break;
         }
 
-        if (state.lowActive) {
+        if (config.lowActive) {
             led.LowActive();
         }
-        if (state.forever) {
+        if (config.forever) {
             led.Forever();
         } else {
-            led.Repeat(state.repeat);
+            led.Repeat(config.repeat);
         }
         return led;
+    }
+
+    function updateTimerElement(duration) {
+        const d = new Date(duration);
+        const m = pad20(d.getMinutes());
+        const s = pad20(d.getSeconds());
+        const hs = pad20(Math.floor(d.getMilliseconds() / 10));
+        const str = `${m}:${s}.${hs}`;
+        const elTimer = document.getElementById("timer");
+        elTimer.innerText = str;
     }
 
     var leds = {};
@@ -233,20 +280,6 @@ const JLedUI = (function () {
         const elTimer = document.getElementById("timer");
         elTimer.classList.add("timer_running");
         animationStep();
-    }
-
-    function pad20(x) {
-        return String(x).padStart(2, "0");
-    }
-
-    function updateTimerElement(duration) {
-        const d = new Date(duration);
-        const m = pad20(d.getMinutes());
-        const s = pad20(d.getSeconds());
-        const hs = pad20(Math.floor(d.getMilliseconds() / 10));
-        const str = `${m}:${s}.${hs}`;
-        const elTimer = document.getElementById("timer");
-        elTimer.innerText = str;
     }
 
     function endAnimation() {
@@ -270,56 +303,64 @@ const JLedUI = (function () {
         }
     }
 
-    function resetLeds() {
+    function onReset() {
         for (let led of Object.values(leds)) led.Reset();
         time_start = Date.now();
         startAnimation();
     }
 
-    function stopLeds() {
+    function onStop() {
         for (let led of Object.values(leds)) led.Stop();
-
         // suppress audio. TODO automatically
         for (let osc of Object.values(oscillators)) osc.frequency.value = 0;
     }
 
-    // [Ok] pressed in the LED config form. Create the JLed object.
-    function setLed(form) {
-        const state = parseLedForm(form);
-        const led = createJLed(state.id, state);
-        leds[state.id] = led;
-        resetLeds();
-        removeInputForm();
+    function getLedContainer(id) {
+        return document.getElementById(ledContainerId(id));
     }
 
-    function createLedForm(id) {
+    // [Start] pressed in the LED config form. Create the LED object.
+    function onStartNewLed(form) {
+        const config = parseLedForm(form);
+        const jled = createJLed(config.id, config);
+        const ledContainer = getLedContainer(config.id);
+        ledContainer.config = config;
+        leds[config.id] = jled;
+        onReset();
+    }
+
+    function createLedConfigForm(id, config) {
+        removeLedConfigForm();
         const form = `
         <form id="led_form" class="led_form">
+            <div style="float: right; display: block;">
+                <button onclick="JLedUI.removeLedConfigForm()" title="close" class="fa fa-window-close btn"></button>
+            </div>
             <fieldset>
                 <input id="led_id" type="hidden" value="${id}" />
                 <legend>Effect</legend>
                 <select id="effects" onchange="JLedUI.onEffectChanged(this, '${id}')">
-                    <option value="blink">Blink</option>
-                    <option value="fadeon">FadeOn</option>
-                    <option value="fadeoff">FadeOff</option>
-                    <option value="breathe">Breathe</option>
-                    <option value="candle">Candle</option>
-                    <option value="on">On</option>
-                    <option value="off">Off</option>
-                    <option value="set">Constant</option>
+                    <option value="blink" ${config.effect == "blink"?"selected":""}>Blink</option>
+                    <option value="fadeon" ${config.effect == "fadeon"?"selected":""}>FadeOn</option>
+                    <option value="fadeoff" ${config.effect == "fadeoff"?"selected":""}>FadeOff</option>
+                    <option value="breathe" ${config.effect == "breathe"?"selected":""}>Breathe</option>
+                    <option value="candle" ${config.effect == "candle"?"selected":""}>Candle</option>
+                    <option value="on" ${config.effect == "on"?"selected":""}>On</option>
+                    <option value="off" ${config.effect == "off"?"selected":""}>Off</option>
+                    <option value="set" ${config.effect == "set"?"selected":""}>Constant</option>
                 </select>
                 <label for="effects">Effect</label>
                 <div>
                     <div class="form_group">
-                        <input id="param0" size="4" value="500" type="text" />
+                        <input id="param0" size="4" value="${config.param0}" type="text" />
                         <label id="label_param0" for="param2"></label>
                     </div>
                     <div class="form_group">
-                        <input id="param1" size="4" value="250" type="text" />
+                        <input id="param1" size="4" value="${config.param1}" type="text" />
                         <label id="label_param1" for="param2"></label>
                     </div>
                     <div class="form_group">
-                        <input id="param2" size="4" value="0" type="text" />
+                        <input id="param2" size="4" value="${config.param2}" type="text" />
                         <label id="label_param2" for="param2"></label>
                     </div>
                 </div>
@@ -328,30 +369,19 @@ const JLedUI = (function () {
             <fieldset>
                 <legend>Control</legend>
                 <div>
-                    <input id="delay_before" size="4" value="0" type="text" />
+                    <input id="delay_before" size="4" value="${config.delayBefore}" type="text" />
                     <label for="delay_before">Delay before</label>
                 </div>
                 <div>
-                    <input id="delay_after" size="4" value="0" type="text" />
+                    <input id="delay_after" size="4" value="${config.delayAfter}" type="text" />
                     <label for="delay_after">Delay after</label>
                 </div>
                 <div>
-                    <input
-                        id="forever"
-                        type="checkbox"
-                        onchange="JLedUI.onForeverCheckboxClicked(this)"
-                        checked
-                    />
+                    <input id="forever" type="checkbox" onchange="JLedUI.onForeverCheckboxClicked(this)" ${config.forever ? "checked" : ""}/>
                     <label for="forever">Forever</label>
                 </div>
                 <div>
-                    <input
-                        id="repeat"
-                        size="3"
-                        value="5"
-                        type="text"
-                        disabled
-                    />
+                    <input id="repeat" size="3" value="${config.repeat}" type="text" disabled />
                     <label for="repeat">Repeat</label>
                 </div>
             </fieldset>
@@ -359,25 +389,16 @@ const JLedUI = (function () {
             <fieldset>
                 <legend>Level</legend>
                 <div>
-                    <input
-                        id="max_brightness"
-                        size="3"
-                        value="255"
-                        type="text"
-                    />
+                    <input id="max_brightness" size="3" value="${config.maxBrightness}" type="text" />
                     <label for="max_brightness">Max brightness</label>
                 </div>
 
                 <div>
-                    <input id="low_active" type="checkbox" />
+                    <input id="low_active" type="checkbox" "${config.lowActive ? "checked" : ""}/>
                     <label for="low_active">Low active</label>
                 </div>
             </fieldset>
-            <input
-                type="button"
-                value="Start"
-                onclick="JLedUI.setLed(this.parentElement)"
-            />
+            <input type="button" value="Start" onclick="JLedUI.onStartNewLed(this.parentElement); JLedUI.removeLedConfigForm();" />
         </form>
     `;
 
@@ -390,7 +411,7 @@ const JLedUI = (function () {
         return container;
     }
 
-    function removeInputForm() {
+    function removeLedConfigForm() {
         const led_form = document.getElementById("led_form_container");
         if (led_form) led_form.remove();
     }
@@ -398,7 +419,6 @@ const JLedUI = (function () {
     var ledcount = 1;
     function addNewLed() {
         const colors = ["orange", "red", "limegreen", "blue", "yellow", "purple"];
-        const root = document.getElementById("root");
         const id = `led${ledcount}`;
         const name = `LED#${ledcount}`;
         const color = colors[ledcount % colors.length];
@@ -408,13 +428,14 @@ const JLedUI = (function () {
         container.classList.add("led_container");
 
         const led = createLedElement(id, name, color);
+        led.config = defaultLedConfig();
 
         container.appendChild(led);
+        const root = document.getElementById("root");
         root.appendChild(container);
 
         // show new input form on top of led container
-        removeInputForm();
-        container.appendChild(createLedForm(id));
+        container.appendChild(createLedConfigForm(id, led.config));
         onEffectChanged(document.getElementById(`effects`), id);
 
         ledcount++;
@@ -423,7 +444,7 @@ const JLedUI = (function () {
     function init() {
         console.log("WASM runtime initialized", Module);
 
-        var x = new MutationObserver(function(ev) {
+        const observer = new MutationObserver(function(ev) {
             console.log(ev);
             const removed = ev[0].removedNodes;
             if (removed) {
@@ -436,22 +457,23 @@ const JLedUI = (function () {
             }
         });
 
-        x.observe(document.getElementById("root"), { childList: true });
+        observer.observe(document.getElementById("root"), { childList: true });
 
-        // Add initial LED
+        // Add an initial LED
         addNewLed();
     }
 
     return {
         addNewLed: addNewLed,
-        stopLeds: stopLeds,
-        resetLeds: resetLeds,
-        setLed: setLed,
+        onStop: onStop,
+        onReset: onReset,
+        onStartNewLed: onStartNewLed,
         color_led : color_led,
-        changeLed: changeLed,
-        toggleAudio: toggleAudio,
+        onShowChangeLedForm: onShowChangeLedForm,
+        onToggleAudio: onToggleAudio,
         onForeverCheckboxClicked: onForeverCheckboxClicked,
         onEffectChanged: onEffectChanged,
+        removeLedConfigForm: removeLedConfigForm,
         init: init
     }
 
