@@ -73,14 +73,11 @@ const JLedUI = (function () {
 
     function createAudioWriter(id, nextWriter) {
         let osc = oscillators[id];
+        let gainNode;
         if (!osc) {
             osc = context.createOscillator();
             osc.type = "square"; // also sine, sawtooth, triangle
             osc.frequency.value = 0; // Hz
-            let gainNode = context.createGain();
-            gainNode.gain.value = 1;        // TODO not working
-            gainNode.connect(context.destination);
-            osc.connect(gainNode);
             osc.start();
             oscillators[id] = osc;
         }
@@ -88,7 +85,9 @@ const JLedUI = (function () {
         return function(val) {
             if (leds[id].audioEnabled) {
                 if (!leds[id].audioConnected) {
-                    osc.connect(context.destination);
+                    const gainNode = context.createGain();
+                    gainNode.gain.setValueAtTime(0.2, context.currentTime);
+                    osc.connect(gainNode).connect(context.destination);
                     leds[id].audioConnected = true;
                 }
                 osc.frequency.value = val + 220;
