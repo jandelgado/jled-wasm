@@ -333,9 +333,11 @@ const JLedUI = (function () {
         removeLedConfigForm();
         const form = `
         <form id="led_form" class="led_form">
-            <div style="float: right; display: block;">
+            <div style="float: right;">
+                LED Configuration
                 <button onclick="JLedUI.removeLedConfigForm()" title="close" class="fa fa-window-close btn"></button>
             </div>
+                <p/>
             <fieldset>
                 <input id="led_id" type="hidden" value="${id}" />
                 <legend>Effect</legend>
@@ -352,15 +354,15 @@ const JLedUI = (function () {
                 <label for="effects">Effect</label>
                 <div>
                     <div class="form_group">
-                        <input id="param0" size="4" value="${config.param0}" type="text" />
+                        <input id="param0" size="6" value="${config.param0}" type="text" />
                         <label id="label_param0" for="param2"></label>
                     </div>
                     <div class="form_group">
-                        <input id="param1" size="4" value="${config.param1}" type="text" />
+                        <input id="param1" size="6" value="${config.param1}" type="text" />
                         <label id="label_param1" for="param2"></label>
                     </div>
                     <div class="form_group">
-                        <input id="param2" size="4" value="${config.param2}" type="text" />
+                        <input id="param2" size="6" value="${config.param2}" type="text" />
                         <label id="label_param2" for="param2"></label>
                     </div>
                 </div>
@@ -369,11 +371,11 @@ const JLedUI = (function () {
             <fieldset>
                 <legend>Control</legend>
                 <div>
-                    <input id="delay_before" size="4" value="${config.delayBefore}" type="text" />
+                    <input id="delay_before" size="6" value="${config.delayBefore}" type="text" />
                     <label for="delay_before">Delay before</label>
                 </div>
                 <div>
-                    <input id="delay_after" size="4" value="${config.delayAfter}" type="text" />
+                    <input id="delay_after" size="6" value="${config.delayAfter}" type="text" />
                     <label for="delay_after">Delay after</label>
                 </div>
                 <div>
@@ -381,7 +383,7 @@ const JLedUI = (function () {
                     <label for="forever">Forever</label>
                 </div>
                 <div>
-                    <input id="repeat" size="3" value="${config.repeat}" type="text" disabled />
+                    <input id="repeat" size="6" value="${config.repeat}" type="text" disabled />
                     <label for="repeat">Repeat</label>
                 </div>
             </fieldset>
@@ -389,7 +391,7 @@ const JLedUI = (function () {
             <fieldset>
                 <legend>Level</legend>
                 <div>
-                    <input id="max_brightness" size="3" value="${config.maxBrightness}" type="text" />
+                    <input id="max_brightness" size="6" value="${config.maxBrightness}" type="text" />
                     <label for="max_brightness">Max brightness</label>
                 </div>
 
