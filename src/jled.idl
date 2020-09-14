@@ -1,0 +1,69 @@
+// JLed WASM Demo IDL file 
+// https://github.com/jandelgado/jled-wasm/
+
+[Prefix="jled::"]
+interface AbstractBrightnessEvaluator {
+    [Const] unsigned short Period();
+    [Const] octet Eval(unsigned long t);
+};
+
+[JSImplementation = "AbstractBrightnessEvaluator"]
+interface BrightnessEvaluator {
+    void BrightnessEvaluator();
+    [Const] unsigned short Period();
+    [Const] octet Eval(unsigned long t);
+};
+
+
+[Prefix="jled::"]
+interface JsHal {
+    void JsHal();
+    void JsHal(JsAbstractAnalogWrite writer);
+    [Const] unsigned long millis();
+    void analogWrite(octet val);
+};
+
+[Prefix="jled::"]
+interface JsAbstractAnalogWrite {
+    void JsAbstractAnalogWrite();
+    void write(octet val);
+};
+
+[JSImplementation = "JsAbstractAnalogWrite"]
+interface JsAnalogWrite {
+    void JsAnalogWrite();
+    void write(octet val);
+};
+
+
+[Prefix="jled::"]
+interface JLed {
+    void  JLed([Ref, Const] JsHal hal);
+
+    boolean  Update();
+    [Ref] JLed Reset();
+    [Ref] JLed Stop();
+    boolean IsRunning();
+
+    [Ref] JLed LowActive();
+    boolean IsLowActive();
+
+    [Ref] JLed DelayBefore(long t);
+    [Ref] JLed DelayAfter(long t);
+    [Ref] JLed Repeat(long t);
+    [Ref] JLed Forever();
+
+    [Ref] JLed On();
+    [Ref] JLed Off();
+    [Ref] JLed Set(octet brightness);
+    [Ref] JLed FadeOn(long t);
+    [Ref] JLed FadeOff(long t);
+    [Ref] JLed Breathe(long t);
+    [Ref] JLed Blink(long t1, long t2);
+    [Ref] JLed Candle(octet speed, octet jitter, long t);
+    [Ref] JLed MaxBrightness(octet level);
+    [Ref] JLed UserFunc(BrightnessEvaluator ube);
+
+    [Ref] JsHal Hal();
+};
+

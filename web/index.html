@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta id="viewport" name="viewport" content ="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        <meta charset="utf-8" />
+        <link href="jled.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" rel="stylesheet">
+        <script type="text/javascript" src="ui.js"></script>
+        <script>
+            var Module = {
+                onRuntimeInitialized: function() {
+                    console.log("WASM runtime initialized");
+                    JLedUI.init();
+                }
+            }
+        </script>
+        <script type="text/javascript" src="jled.js"></script>
+        <title>JLed Web Assembly (WASM) Demo</title>
+    </head>
+    <body>
+        <h1>JLed Web Assembly (WASM) Demo</h1>
+        <p class="infobox">
+        <b>What?</b> This is a demo of the <a
+           href="https://github.com/jandelgado/jled">JLed</a> Arduino C++
+       embedded library <a
+           href="https://github.com/jandelgado/jled-wasm">compiled for Web
+           Assembly (WASM)</a>  and using a hardware abstraction layer that
+       drives an element in the browser instead of a real LED connected to an
+       Arduino microcontroller.</p> 
+        <p class="infobox">
+        <b>Why?</b> Proof of concept and to provide an interactive JLed play ground.
+        </p>
+        <div style="clear:both;">
+            <div style="float: left;">
+                <button onclick="JLedUI.addNewLed()" title="add a new LED" class="fas fa-plus-circle btn fa-3x"></button>
+                <button onclick="JLedUI.onReset()" title="reset" class="fas fa-undo-alt btn fa-3x" href="#"></button>
+                <button onclick="JLedUI.onStop()" title="stop all LEDs" class="fas fa-stop-circle btn fa-3x" href="#"></button>
+            </div>
+            <div id="timer" class="timer">00:00.00</div>
+        </div>
+        <p/>
+        <div id="root" class="leds_container"></div>
+
+        <div class="footer">
+            LED graphics from <a href="https://fritzing.org">fritzing</a> //
+            Author: <a href="https://github.com/jandelgado">Jan Delgado</a>
+        </div>
+    </body>
+</html>
