@@ -1,4 +1,5 @@
 // JLed WASM Demo IDL file 
+// https://github.com/jandelgado/jled-wasm/
 
 [Prefix="jled::"]
 interface AbstractBrightnessEvaluator {

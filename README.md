@@ -4,14 +4,14 @@
 
 * [Example](#example)
 * [Author & License](#author--license)
-* [References](#references)
 
 <!-- vim-markdown-toc -->
 
 [![RUN THE DEMO](.images/jled-wasm.png)](https://jandelgado.github.io/jled-wasm)
 
-This project compiles the JLed library Web Assembly (WASM), making it usable
-with Javascript. As an example an interactive web-playground is provided. 
+This project compiles the embedded C++ JLed Arduino library to Web Assembly
+(WASM), making it usable with Javascript. As an example an interactive
+web-playground is provided. 
 
 [JLed](https://github.com/jandelgado/jled) is an Ardunio C++ library to control LEDs in various ways.
 
@@ -51,11 +51,4 @@ $ cd src && node example-simple.js
 
 (c) 2020 Jan Delgado
 License: MIT
-
-## References
-
-* https://github.com/jandelgado/jled
-* https://stackoverflow.com/questions/41875728/pass-a-javascript-array-as-argument-to-a-webassembly-function
-* https://kapadia.github.io/emscripten/2013/09/13/emscripten-pointers-and-pointers.html
-* https://github.com/Planeshifter/emscripten-examples/tree/master/01_PassingArrays
 
