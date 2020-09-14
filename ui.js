@@ -1,6 +1,7 @@
-// JLed WASM demo - JS UI 
+// JLed WASM demo - JS UI hack
 //
 // (c) copyright 2020 jan delgado
+// 
 // see github.com/jandelgado/jled-wasm
 //     github.com/jandelgado/jled
 const JLedUI = (function () {
@@ -17,7 +18,7 @@ const JLedUI = (function () {
     }
 
     // change color and brightness of an LED SVG element
-    function color_led(led, color, brightness) {
+    function setLedColor(led, color, brightness) {
         const elem = document.getElementById(led);
 
         if (elem.brightness == brightness) {
@@ -50,7 +51,7 @@ const JLedUI = (function () {
 
     function createLedWriter(id, nextWriter) {
         return function(val) {
-            color_led(id, null, val);
+            setLedColor(id, null, val);
             if (nextWriter) nextWriter(val);
         };
     }
@@ -59,7 +60,7 @@ const JLedUI = (function () {
         return leds[id].audioEnabled == true
     }
 
-    function onToggleAudio(id, button) {
+    function onFormToggleAudio(id, button) {
         leds[id].audioEnabled = !isAudioEnabled(id);
         if (leds[id].audioEnabled) {
             button.classList.add("icon_btn_select");
@@ -86,12 +87,11 @@ const JLedUI = (function () {
             if (leds[id].audioEnabled) {
                 if (!leds[id].audioConnected) {
                     const gainNode = context.createGain();
-                    gainNode.gain.setValueAtTime(0.2, context.currentTime);
+                    gainNode.gain.setValueAtTime(0.1, context.currentTime);
                     osc.connect(gainNode).connect(context.destination);
                     leds[id].audioConnected = true;
                 }
-                osc.frequency.value = val + 220;
-                //  osc.stop(context.currentTime + 0.1);
+                osc.frequency.value = (val/255.)*220 + 220;
             } else {
                 osc.disconnect();
                 leds[id].audioConnected = false;
@@ -100,7 +100,7 @@ const JLedUI = (function () {
         };
     }
 
-    function create_hal(id) {
+    function createHAL(id) {
         const audio_writer = audio ? createAudioWriter(id, null) : null;
         let wr = new JsAnalogWrite();
         wr.write = createLedWriter(id, audio_writer);
@@ -126,16 +126,16 @@ const JLedUI = (function () {
 
     // [x] forever checkbox was clicked -> toggle "Repeat" text field since
     // only one of both can be selected
-    function onForeverCheckboxClicked(elem) {
+    function onFormForeverCheckbox(elem) {
         document.getElementById("repeat").disabled = elem.checked;
     }
 
     // the current effect is changed in the effects form -> update the 
     // effects parameters
-    function onEffectChanged(elem) {
+    function onFormEffectChanged(elem) {
         const param_map = {
             blink: [ {t:"Time on", v: 500}, {t:"Time off", v: 250}, null],
-            candle: [{t:"Speed", v: 10}, {t:"Jitter", v:20}, {t:"Period", v:5000}],
+            candle: [{t:"Speed", v: 6}, {t:"Jitter", v:15}, {t:"Period", v:9999}],
             fadeon: [{t:"Period", v: 1500}, null, null],
             fadeoff: [{t:"Period", v: 1500}, null, null],
             breathe: [{t:"Period", v: 2000}, null, null],
@@ -148,14 +148,17 @@ const JLedUI = (function () {
 
         let i = 0;
         for (const param of params) {
+            const paramid = `param${i}`
+            const labelid = `label_param${i}`
+
             if (!param) {
-                document.getElementById(`param${i}`).style.display = "none";
-                document.getElementById(`label_param${i}`).style.display = "none";
+                document.getElementById(`${paramid}`).style.display = "none";
+                document.getElementById(`${labelid}`).style.display = "none";
             } else {
-                document.getElementById(`param${i}`).style.display = "inline-block";
-                document.getElementById(`label_param${i}`).style.display = "inline-block";
-                document.getElementById(`label_param${i}`).innerText = param.t;
-                document.getElementById(`param${i}`).value = param.v;
+                document.getElementById(`${paramid}`).style.display = "inline-block";
+                document.getElementById(`${labelid}`).style.display = "inline-block";
+                document.getElementById(`${labelid}`).innerText = param.t;
+                document.getElementById(`${paramid}`).value = param.v;
             }
             i++;
         }
@@ -163,10 +166,7 @@ const JLedUI = (function () {
 
 	// show the form to change the LED 
     function onShowChangeLedForm(id, container) {
-        console.log("change led ", id);
         const led = document.getElementById(ledContainerId(id));
-
-        console.log("led = ", led);
         container.appendChild(createLedConfigForm(id, led.config));
     }
 
@@ -174,7 +174,7 @@ const JLedUI = (function () {
         return `led_container_${id}`;
     }
 
-    function createLedElement(id, name, color) {
+    function createLedHtmlElement(id, name, color) {
         const container = document.createElement("div");
         container.id = ledContainerId(id);
 
@@ -182,9 +182,9 @@ const JLedUI = (function () {
             <span>${name}</span>
             <button onclick="this.parentElement.parentElement.remove()" class="fas fa-trash-alt icon_btn" href="#"></button>
             <button onclick="JLedUI.onShowChangeLedForm('${id}', this.parentElement.parentElement)" class="far fa-edit icon_btn" href="#"></button>
-            <button onclick="JLedUI.onToggleAudio('${id}', this)" class="fas fa-volume-up icon_btn" href="#"></button>
+            <button onclick="JLedUI.onFormToggleAudio('${id}', this)" class="fas fa-volume-up icon_btn" href="#"></button>
             <p/>
-            <object id="${id}" type="image/svg+xml" data="led.svg" class="led" onload="JLedUI.color_led('${id}', '${color}', 0);">
+            <object id="${id}" type="image/svg+xml" data="led.svg" class="led" onload="JLedUI.setLedColor('${id}', '${color}', 0);">
             </object>
             <span class="brightness" style="background-color: ${color}">val</span>`;
 
@@ -212,7 +212,7 @@ const JLedUI = (function () {
 
     // create a new JLed object with the given configuration
     function createJLed(id, config) {
-        const hal = create_hal(id);
+        const hal = createHAL(id);
         const led = new JLed(hal)
             .DelayBefore(config.delayBefore)
             .DelayAfter(config.delayAfter)
@@ -319,7 +319,7 @@ const JLedUI = (function () {
     }
 
     // [Start] pressed in the LED config form. Create the LED object.
-    function onStartNewLed(form) {
+    function onFormStartNewLed(form) {
         const config = parseLedForm(form);
         const jled = createJLed(config.id, config);
         const ledContainer = getLedContainer(config.id);
@@ -340,7 +340,7 @@ const JLedUI = (function () {
             <fieldset>
                 <input id="led_id" type="hidden" value="${id}" />
                 <legend>Effect</legend>
-                <select id="effects" onchange="JLedUI.onEffectChanged(this, '${id}')">
+                <select id="effects" onchange="JLedUI.onFormEffectChanged(this, '${id}')">
                     <option value="blink" ${config.effect == "blink"?"selected":""}>Blink</option>
                     <option value="fadeon" ${config.effect == "fadeon"?"selected":""}>FadeOn</option>
                     <option value="fadeoff" ${config.effect == "fadeoff"?"selected":""}>FadeOff</option>
@@ -378,7 +378,7 @@ const JLedUI = (function () {
                     <label for="delay_after">Delay after</label>
                 </div>
                 <div>
-                    <input id="forever" type="checkbox" onchange="JLedUI.onForeverCheckboxClicked(this)" ${config.forever ? "checked" : ""}/>
+                    <input id="forever" type="checkbox" onchange="JLedUI.onFormForeverCheckbox(this)" ${config.forever ? "checked" : ""}/>
                     <label for="forever">Forever</label>
                 </div>
                 <div>
@@ -399,7 +399,7 @@ const JLedUI = (function () {
                     <label for="low_active">Low active</label>
                 </div>
             </fieldset>
-            <input type="button" value="Start" onclick="JLedUI.onStartNewLed(this.parentElement); JLedUI.removeLedConfigForm();" />
+            <input type="button" value="Start" onclick="JLedUI.onFormStartNewLed(this.parentElement); JLedUI.removeLedConfigForm();" />
         </form>
     `;
 
@@ -428,16 +428,16 @@ const JLedUI = (function () {
         container.led_id = id;
         container.classList.add("led_container");
 
-        const led = createLedElement(id, name, color);
+        const led = createLedHtmlElement(id, name, color);
         led.config = defaultLedConfig();
 
         container.appendChild(led);
         const root = document.getElementById("root");
         root.appendChild(container);
 
-        // show new input form on top of led container
+        // show configuration input form on top of led container
         container.appendChild(createLedConfigForm(id, led.config));
-        onEffectChanged(document.getElementById(`effects`), id);
+        onFormEffectChanged(document.getElementById(`effects`), id);
 
         ledcount++;
     }
@@ -465,15 +465,15 @@ const JLedUI = (function () {
     }
 
     return {
+        setLedColor : setLedColor,
         addNewLed: addNewLed,
         onStop: onStop,
         onReset: onReset,
-        onStartNewLed: onStartNewLed,
-        color_led : color_led,
+        onFormStartNewLed: onFormStartNewLed,
         onShowChangeLedForm: onShowChangeLedForm,
-        onToggleAudio: onToggleAudio,
-        onForeverCheckboxClicked: onForeverCheckboxClicked,
-        onEffectChanged: onEffectChanged,
+        onFormToggleAudio: onFormToggleAudio,
+        onFormForeverCheckbox: onFormForeverCheckbox,
+        onFormEffectChanged: onFormEffectChanged,
         removeLedConfigForm: removeLedConfigForm,
         init: init
     }

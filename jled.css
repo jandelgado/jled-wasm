@@ -85,7 +85,7 @@ input[type="button"] {
 .led_container {
     float: left;
     position: relative;
-    min-width: 160px;
+    min-width: 200px;
     width: 12vw;
     border: 1px dashed darkgray;
     margin: 5px;
