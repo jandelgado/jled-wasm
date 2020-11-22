@@ -24,8 +24,8 @@ $(SRC)/jled_glue.js: $(OUT) $(JLED_IDL)
 $(SRC)/jled_glue.cpp: $(SRC)/jled_glue.js
 
 $(OUT)/jled.js: $(SRC)/jled_glue.cpp $(CPPSRC)
-	em++ --std=c++11 -O0 --bind -I$(SRC) -I$(JLED_SRC) -s WASM=1 -s \
-		ASSERTIONS=2 -Werror\
+	em++ --std=c++11 -Oz --bind -I$(SRC) -I$(JLED_SRC) \
+	     -s WASM=1 -s ASSERTIONS=0 -Werror \
 		 --post-js $(SRC)/jled_glue.js -o $(OUT)/jled.js \
 		 $(CPPSRC) $(JLED_SRC)/jled_base.cpp
 
